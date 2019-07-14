@@ -1,0 +1,12 @@
+<VirtualHost *:80>
+    ServerName localhost
+
+    WSGIDaemonProcess w2v_tissues user=apache group=apache threads=5
+    WSGIScriptAlias /w2v_tissues/rest/v1 /var/www/w2v_tissues/w2v_tissues.wsgi
+
+    <Directory /var/www/w2v_tissues>
+        WSGIProcessGroup wtoov
+        WSGIApplicationGroup %{GLOBAL}
+        Require all granted
+    </Directory>
+</VirtualHost>

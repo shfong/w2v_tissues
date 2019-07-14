@@ -8,38 +8,54 @@ from scipy.stats import percentileofscore
 logger = logging.getLogger(__name__)
 
 
-class Tissue(object): 
-    biggim_tissues_path = "/cellar/users/samsonfong/Ongoing/ncats/src/w2v_api/biggim_tissues.txt"
-    w2v_model_path = '/data/cellardata/users/samsonfong/Projects/ncats/pubmed_w2v/wikipedia-pubmed-and-PMC-w2v.bin'
-
+class Tissue(object):
+    """
+    Tissue class
+    """
     def __init__(
         self, 
         get_background=False, 
         number_background_words=10_000, 
-        loggerLevel=logging.INFO
-    ): 
+        loggerLevel=logging.INFO,
+        biggim_tissues=None,
+        w2v_model_path=None
+    ):
+        """
+        Constructor
+        :param get_background:
+        :param number_background_words:
+        :param loggerLevel:
+        :param biggim_tissues:
+        :param w2v_model_path:
+        """
 
         logger.setLevel(loggerLevel)
-        print("Begin loading")
-        logger.info("Loading biggim tissues...") 
+        logger.info("Loading biggim tissues...")
 
-        with open(self.biggim_tissues_path, 'r') as f: 
+        with open(biggim_tissues, 'r') as f:
             self.tissues = [i.strip() for i in f.readlines()]
 
         logger.info("Loading w2v model...")
 
         self.wv_from_bin = KeyedVectors.load_word2vec_format(
-            self.w2v_model_path, 
+            w2v_model_path,
             binary=True
         )
         
         self.tissues_map = {t: self.return_combinations(t) for t in self.tissues}
 
         logger.info("Loading done!")
-        print("Done Loading")
 
 
-    def get_distance(self, word, n=10, compare_with_background=False): 
+    def get_distance(self, word, n=10, compare_with_background=False):
+        """
+        Uh gets distance?
+
+        :param word:
+        :param n:
+        :param compare_with_background:
+        :return:
+        """
         word_array = self.return_combinations(word, return_checks=True)
         word_array, checks = zip(*word_array)
         
