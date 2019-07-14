@@ -57,6 +57,8 @@ setup(
     keywords='WordToVectorTissues.upper()',
     name='w2v_tissues',
     packages=find_packages(include=['w2v_tissues']),
+    package_dir={'w2v_tissues': 'w2v_tissues'},
+    package_data={'w2v_tissues': [ 'biggim_tissues.txt']},
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
