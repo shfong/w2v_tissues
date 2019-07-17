@@ -17,7 +17,7 @@ class Tissue(object):
         get_background=False, 
         number_background_words=10_000, 
         loggerLevel=logging.INFO,
-        biggim_tissues=None,
+        biggim_tissues="biggim_tissues.txt",
         w2v_model_path=None
     ):
         """
@@ -44,20 +44,26 @@ class Tissue(object):
         
         self.tissues_map = {t: self.return_combinations(t) for t in self.tissues}
 
+        if get_background: 
+            self.calculate_background(n=number_background_words)
+
         logger.info("Loading done!")
 
 
-    def get_distance(self, word, n=10, compare_with_background=False):
+    def get_distance(self, word, n=10, sep='_', compare_with_background=False):
         """
-        Uh gets distance?
+        Calculate a word's similarities to a pre-defined list of tissues
+
+        Returns only the top `n` tissues.
 
         :param word:
         :param n:
+        :param sep: determines how input string is split into words
         :param compare_with_background:
         :return:
         """
-        word_array = self.return_combinations(word, return_checks=True)
-        word_array, checks = zip(*word_array)
+        word_array = self.return_combinations(word, sep=sep, return_checks=True)
+        word_array, checks = zip(*word_array) # checks determine whether the word is in the corpus
         
         skipped_words = [i for i,j in zip(word_array, checks) if not j]
         
@@ -65,13 +71,19 @@ class Tissue(object):
             logger.warning("Skipped words: %s" % ','.join(skipped_words))
         
         word_array = [i for i, j in zip(word_array, checks) if j]
+
+        if not word_array: 
+            raise RuntimeError("No valid word remained!")
         
         out = np.vstack([self.single_word_distance(w) for w in word_array])
         out = np.mean(out, axis=0)
 
         if compare_with_background:
+            if not hasattr(self, "background"): 
+                raise RuntimeError("No background found! Please run `calculate_background` method.")
+
             out = [(self.tissues[ind], j, percentileofscore(i,j)) \
-                for ind, (i,j) in enumerate(zip(self.background, out))]
+                for ind, (i,j) in enumerate(zip(self.background.T, out))]
 
             out = sorted(out, key=lambda x:x[1], reverse=True)[:n]
 
@@ -97,16 +109,19 @@ class Tissue(object):
 
 
     def calculate_background(self, n): 
-        self.random_words = np.random.choice(list(self.wv_from_bin.vocab.keys()), 10_000)
+        self.random_words = np.random.choice(list(self.wv_from_bin.vocab.keys()), n)
         
         self.background = [self.single_word_distance(word) for word in self.random_words]
         self.background = np.array(self.background)
 
 
-    def return_combinations(self, word, return_checks=False):
-        """TODO: Return in_vocab"""
+    def return_combinations(self, word, sep='_', return_checks=False):
+        """Splits word into possible phrases and check if they are in the corpus
         
-        array = word.split('_')
+        TODO: Return in_vocab
+        """
+        
+        array = word.split(sep)
 
         for i in range(len(array)):
             #combinations contain all possible permutations
