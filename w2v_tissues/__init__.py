@@ -37,7 +37,8 @@ DEFAULT_RATE_LIMIT_KEY = 'DEFAULT_RATE_LIMIT'
 WORDTOVECMODEL='WORDTOVEC_MODELPATH'
 
 app.config[DEFAULT_RATE_LIMIT_KEY] = '360 per hour'
-app.config[WORDTOVECMODEL] = '/tmp/wikipedia-pubmed-and-PMC-w2v.bin'
+#app.config[WORDTOVECMODEL] = '/tmp/wikipedia-pubmed-and-PMC-w2v.bin'
+app.config[WORDTOVECMODEL] = '/data/cellardata/users/samsonfong/Projects/ncats/pubmed_w2v/wikipedia-pubmed-and-PMC-w2v.bin'
 
 
 app.config.from_envvar(WORDTOVECTOR_REST_SETTINGS_ENV, silent=True)
@@ -48,6 +49,7 @@ SERVICE_NS = 'w2v_tissues'
 # key in result dictionary denoting input parameters
 DISEASE_PARAM = 'disease'
 N_PARAM = 'n'
+SEP="sep"
 
 api = Api(app, version=str(__version__),
           title='WordToVectorTissues REST Server',
@@ -144,11 +146,17 @@ class GetTissue(Resource):
     post_parser = reqparse.RequestParser()
 
     post_parser.add_argument(DISEASE_PARAM,
+                             required=True,
                              help='Disease Parameter',
                              location='form')
     post_parser.add_argument(N_PARAM, type=int,
-                             help='I have no idea what this parameter means',
+                             default=10,
+                             help='Number of tissues to return',
                              location='form')
+    post_parser.add_argument(SEP,
+                             default='_',
+                             help="Separation character for the input phrase", 
+                             location="form")
 
     @api.doc('Runs WordToVectorTissues')
     @api.response(200, 'The task was successfully submitted to the service. ')
@@ -168,6 +176,7 @@ class GetTissue(Resource):
         try:
             out = TISSUE_ENG.get_distance(params['disease'],
                                           n=params['n'],
+                                          sep=params['sep'],
                                           compare_with_background=True)
 
         except KeyError:
@@ -185,7 +194,6 @@ class GetTissue(Resource):
                 } for i, j, k in out
             ]
         }
-        out = json.dumps(out)
 
         return out, 200
 
