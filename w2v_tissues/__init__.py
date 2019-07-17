@@ -37,8 +37,7 @@ DEFAULT_RATE_LIMIT_KEY = 'DEFAULT_RATE_LIMIT'
 WORDTOVECMODEL='WORDTOVEC_MODELPATH'
 
 app.config[DEFAULT_RATE_LIMIT_KEY] = '360 per hour'
-#app.config[WORDTOVECMODEL] = '/tmp/wikipedia-pubmed-and-PMC-w2v.bin'
-app.config[WORDTOVECMODEL] = '/data/cellardata/users/samsonfong/Projects/ncats/pubmed_w2v/wikipedia-pubmed-and-PMC-w2v.bin'
+app.config[WORDTOVECMODEL] = '/tmp/wikipedia-pubmed-and-PMC-w2v.bin'
 
 
 app.config.from_envvar(WORDTOVECTOR_REST_SETTINGS_ENV, silent=True)
